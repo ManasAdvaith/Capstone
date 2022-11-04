@@ -54,7 +54,6 @@ def predict(ticker,end_date,fp,df):
 
 
 
-    fp.write("RMSE: "+str(rmse)+"  ")
     quote = df
     new_df = quote.filter(['Close'])
     last_60_days = new_df[-60:].values
@@ -66,14 +65,16 @@ def predict(ticker,end_date,fp,df):
     pred_price = model.predict(X_test)
     pred_price = scaler.inverse_transform(pred_price)
     val=pred_price[0][0]
-    fp.write("PREDICTED PRICE"+str(val)+"\n")
+    fp[ticker]=val
 
 tickers=['AAPL','TCS']
 yesterday=datetime.now()-timedelta(1)
 end_date=datetime.strftime(yesterday,'%Y-%m-%d')
-fp = open('RESULTS.txt', 'w')
-for ticker in tickers:
-    fp.write(str(ticker) + "  ")
-    df = web.DataReader(ticker, data_source='yahoo', start='2018-01-01', end=end_date)
-    predict(ticker,end_date,fp,df)
-fp.close()
+fp = {}
+def call(end_date,fp,tickers):
+    for ticker in tickers:
+        fp[ticker]=0
+        df = web.DataReader(ticker, data_source='yahoo', start='2018-01-01', end=end_date)
+        predict(ticker,end_date,fp,df)
+    return fp
+print(call(end_date,fp,tickers))
